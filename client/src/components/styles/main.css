@@ -1,0 +1,1414 @@
+/* ========================================
+   艾尔德兰编年史：裂隙纪元 - 主样式表
+   黑暗奇幻主题 | 剑与魔法
+   ======================================== */
+
+:root {
+  --bg-deep: #0d1117;
+  --bg-main: #161b22;
+  --bg-card: #1c2333;
+  --bg-elevated: #21283a;
+  --border: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --gold: #d4a574;
+  --gold-bright: #f0c060;
+  --red: #e5534b;
+  --red-dark: #8b0000;
+  --green: #3fb950;
+  --blue: #58a6ff;
+  --purple: #a371f7;
+  --orange: #d29922;
+  --cyan: #39d2c0;
+  --hp-color: #e5534b;
+  --mp-color: #58a6ff;
+  --exp-color: #d29922;
+  --forsaken-color: #8b0000;
+  --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --transition: 0.2s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root { height: 100vh; }
+
+/* ========================================
+   滚动条
+   ======================================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ========================================
+   App容器
+   ======================================== */
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   加载屏幕 & 标题屏幕
+   ======================================== */
+.loading-screen,
+.title-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.loading-screen {
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.title-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 600px;
+}
+
+.game-title {
+  font-size: 3rem;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212, 167, 116, 0.3);
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+}
+
+.game-subtitle {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  letter-spacing: 8px;
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+.title-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.version-info {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ========================================
+   按钮
+   ======================================== */
+.btn-primary {
+  display: inline-block;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--gold), #b8860b);
+  color: #0d1117;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(212, 167, 116, 0.4);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 12px 32px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-main);
+}
+.btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn-small {
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+.btn-small:hover { border-color: var(--gold); }
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: var(--font-main);
+}
+.btn-back:hover { color: var(--gold); }
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.btn-icon:hover { color: var(--gold); }
+
+.btn-start {
+  margin-top: 20px;
+  font-size: 1.3rem;
+  padding: 16px 48px;
+  width: 100%;
+}
+
+/* ========================================
+   角色创建
+   ======================================== */
+.character-creation {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-deep);
+}
+
+.creation-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
+}
+.creation-header h2 {
+  font-size: 1.2rem;
+  color: var(--gold);
+  flex: 1;
+}
+
+.step-indicator {
+  display: flex;
+  gap: 8px;
+}
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: var(--transition);
+}
+.step-dot.active { background: var(--gold); }
+
+.creation-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.creation-step {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.creation-step h3 {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+/* 输入框 */
+.input-text {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.input-text:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 167, 116, 0.15);
+}
+.input-text::placeholder { color: var(--text-muted); }
+
+.form-group { margin-bottom: 20px; }
+
+.preview-text {
+  color: var(--gold);
+  font-style: italic;
+  margin: 16px 0;
+  font-size: 1.05rem;
+}
+
+/* 种族/职业/世界 卡片网格 */
+.race-grid, .class-grid, .world-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.card {
+  padding: 16px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  font-family: var(--font-main);
+  color: var(--text-primary);
+}
+.card:hover {
+  border-color: var(--text-secondary);
+  transform: translateY(-1px);
+}
+.card.selected {
+  border-color: var(--gold);
+  background: rgba(212, 167, 116, 0.1);
+  box-shadow: 0 0 12px rgba(212, 167, 116, 0.2);
+}
+
+.card-emoji { font-size: 2rem; margin-bottom: 8px; }
+.card-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 4px; }
+.card-desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; }
+.card-stats { display: flex; gap: 12px; font-size: 0.85rem; color: var(--text-muted); }
+.card-detail { font-size: 0.85rem; color: var(--cyan); margin-bottom: 4px; }
+.card-skills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.skill-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.selected-info {
+  margin: 16px 0;
+  padding: 12px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+}
+
+/* 天赋 */
+.talent-method {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+.talent-method label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+.talent-method input[type="radio"] {
+  accent-color: var(--gold);
+}
+
+.talent-categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.btn-tag {
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.btn-tag:hover, .btn-tag.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.talent-card { min-height: 90px; }
+.talent-card.forsaken {
+  border-color: var(--red-dark);
+}
+.talent-card.forsaken:hover {
+  border-color: var(--red);
+}
+.talent-card.forsaken.selected {
+  border-color: var(--red);
+  background: rgba(139, 0, 0, 0.2);
+  box-shadow: 0 0 12px rgba(139, 0, 0, 0.3);
+}
+
+.forsaken-warning {
+  color: var(--red);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.random-info {
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.random-info p { margin-bottom: 8px; color: var(--text-secondary); }
+
+.forsaken-hint {
+  color: var(--red);
+  font-size: 0.9rem;
+}
+
+/* 选项 */
+.option-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+}
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.option-label input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 18px;
+  height: 18px;
+}
+.option-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 26px;
+}
+
+.forsaken-lock {
+  text-align: center;
+  padding: 16px;
+  color: var(--red);
+  background: rgba(139, 0, 0, 0.15);
+  border-radius: var(--radius);
+  font-style: italic;
+  margin-top: 20px;
+}
+
+/* World Effects */
+.world-effects {
+  font-size: 0.8rem;
+  color: var(--cyan);
+  margin-top: 4px;
+}
+
+/* ========================================
+   游戏主界面
+   ======================================== */
+.game-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 12px 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  color: var(--gold);
+  font-weight: bold;
+  animation: slideIn 0.3s ease;
+  box-shadow: var(--shadow);
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* 顶栏 */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-title-small {
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.forsaken-badge {
+  color: var(--red);
+  font-weight: bold;
+}
+
+.world-badge {
+  font-size: 0.8rem;
+  color: var(--cyan);
+}
+
+/* 游戏主体 */
+.game-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧面板 */
+.side-panel {
+  width: 260px;
+  min-width: 260px;
+  background: var(--bg-main);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.character-status {
+  text-align: center;
+}
+
+.avatar-frame {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-frame.forsaken-frame {
+  border-color: var(--red-dark);
+  box-shadow: 0 0 16px rgba(139, 0, 0, 0.3);
+}
+.avatar { font-size: 2rem; }
+
+.character-status h3 {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+.char-title {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.stat-bar {
+  margin-bottom: 8px;
+}
+.stat-bar .stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.bar-track {
+  height: 8px;
+  background: var(--bg-deep);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.bar-fill.hp { background: linear-gradient(90deg, var(--hp-color), #ff6b6b); }
+.bar-fill.mp { background: linear-gradient(90deg, var(--mp-color), #79c0ff); }
+.bar-fill.exp { background: linear-gradient(90deg, var(--exp-color), #f0c040); }
+.stat-value {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.attr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.attr-item {
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  text-align: center;
+}
+.attr-item small {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* 属性分配 */
+.allocate-points {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--gold);
+}
+.allocate-points h4 { font-size: 0.85rem; margin-bottom: 8px; color: var(--gold); }
+.alloc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+.alloc-row button {
+  width: 24px;
+  height: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.alloc-row button:hover:not(:disabled) { border-color: var(--gold); }
+.alloc-row button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.side-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.btn-side {
+  padding: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-align: left;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.btn-side:hover, .btn-side.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(212, 167, 116, 0.1);
+}
+
+.location-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+/* 中间叙事面板 */
+.narrative-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-msg {
+  max-width: 90%;
+}
+
+.player-msg { align-self: flex-end; }
+.system-msg { align-self: flex-start; }
+
+.msg-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.msg-content {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.player-msg .msg-content {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+
+.system-msg .msg-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.narrative-msg .msg-content {
+  background: linear-gradient(135deg, rgba(212,167,116,0.08), rgba(212,167,116,0.02));
+  border: 1px solid rgba(212,167,116,0.2);
+}
+
+.typing-indicator {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+  align-self: flex-start;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* 快捷操作 */
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.btn-quick {
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.btn-quick:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.btn-quick:disabled { opacity: 0.4; }
+
+/* 输入区 */
+.input-area {
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-main);
+}
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+.game-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.game-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.game-input::placeholder { color: var(--text-muted); }
+.game-input:disabled { opacity: 0.5; }
+
+.btn-send {
+  width: 44px;
+  height: 44px;
+  background: var(--gold);
+  border: none;
+  border-radius: var(--radius);
+  color: #0d1117;
+  font-size: 1.2rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-send:hover:not(:disabled) { background: var(--gold-bright); }
+.btn-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* 右侧面板 */
+.right-panel {
+  width: 300px;
+  min-width: 300px;
+  background: var(--bg-main);
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  position: relative;
+}
+.btn-close-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.btn-close-panel:hover { color: var(--red); }
+
+/* ========================================
+   地图面板
+   ======================================== */
+.map-panel h3 {
+  margin-bottom: 12px;
+  color: var(--gold);
+}
+.current-location {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+.location-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.map-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.map-node {
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  font-family: var(--font-main);
+  color: var(--text-primary);
+  cursor: default;
+  min-width: 160px;
+}
+.map-node.current {
+  border-color: var(--gold);
+  background: rgba(212, 167, 116, 0.1);
+}
+button.map-node {
+  cursor: pointer;
+  transition: var(--transition);
+}
+button.map-node:hover {
+  border-color: var(--text-secondary);
+  transform: translateY(-1px);
+}
+.map-node.unknown { opacity: 0.6; }
+.map-node.explored { opacity: 1; }
+
+.node-icon { font-size: 1.2rem; margin-bottom: 2px; }
+.node-name { font-size: 0.9rem; font-weight: bold; }
+.node-warning { font-size: 0.75rem; color: var(--red); margin-top: 2px; }
+.node-highlight { font-size: 0.75rem; color: var(--purple); margin-top: 2px; }
+
+.map-connections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.map-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.connector-line {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.map-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.explored-list h4 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.explored-item {
+  padding: 4px 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   背包面板
+   ======================================== */
+.inventory-panel h3 {
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+.inv-gold {
+  color: var(--gold);
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+.inventory-panel h4 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 12px 0 8px;
+}
+
+.equipment-slots {
+  margin-bottom: 12px;
+}
+.equip-slot {
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  display: flex;
+  gap: 8px;
+}
+.slot-label { color: var(--text-muted); }
+
+.inv-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.empty-inv {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.inv-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+.item-icon { font-size: 1.5rem; }
+.item-info { flex: 1; }
+.item-name { font-size: 0.9rem; font-weight: bold; }
+.item-qty { color: var(--cyan); font-size: 0.8rem; }
+.item-desc { font-size: 0.75rem; color: var(--text-muted); margin: 2px 0; }
+.item-stats { font-size: 0.75rem; color: var(--green); }
+
+/* ========================================
+   战斗面板
+   ======================================== */
+.combat-panel {
+  margin: 0 24px 8px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--red-dark);
+  border-radius: var(--radius);
+}
+
+.combat-header {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--red);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.combat-info {
+  margin-bottom: 12px;
+}
+
+.combat-entity {
+  text-align: center;
+}
+.entity-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.hp-bar-small {
+  height: 12px;
+  background: var(--bg-deep);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.bar-fill.enemy-hp {
+  background: linear-gradient(90deg, var(--red), #ff6b6b);
+}
+.entity-hp {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.enemy-status {
+  font-size: 0.8rem;
+  color: var(--cyan);
+  margin-top: 4px;
+}
+
+.combat-log {
+  margin: 12px 0;
+  padding: 8px;
+  background: var(--bg-deep);
+  border-radius: var(--radius-sm);
+  max-height: 120px;
+  overflow-y: auto;
+}
+.combat-log-entry {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 2px 0;
+}
+
+.combat-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-combat {
+  padding: 8px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.btn-combat:hover { border-color: var(--gold); color: var(--gold); }
+.btn-skill { border-color: var(--purple); color: var(--purple); }
+.btn-skill:hover { background: rgba(163,113,247,0.1); }
+.btn-item { border-color: var(--green); color: var(--green); }
+.btn-item:hover { background: rgba(63,185,80,0.1); }
+.btn-escape { border-color: var(--orange); color: var(--orange); }
+.btn-escape:hover { background: rgba(210,153,34,0.1); }
+
+/* ========================================
+   社交面板
+   ======================================== */
+.social-panel {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.social-header {
+  padding: 12px 24px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
+}
+.social-header h2 {
+  font-size: 1.2rem;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.social-tabs {
+  display: flex;
+  gap: 4px;
+}
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: var(--font-main);
+  transition: var(--transition);
+}
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.social-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.tab-content h4 {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin: 16px 0 12px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.search-bar input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+.search-bar input:focus { outline: none; border-color: var(--gold); }
+
+.search-results { margin-bottom: 16px; }
+
+.player-card, .friend-card, .request-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.player-class { color: var(--text-muted); }
+.friend-name { font-weight: bold; flex: 1; }
+.friend-info { color: var(--text-muted); font-size: 0.85rem; }
+.friend-status { font-size: 0.8rem; }
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.online-dot.online { background: var(--green); }
+.online-dot.offline { background: var(--text-muted); }
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-accept, .btn-reject {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* 聊天 */
+.chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: var(--bg-deep);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.chat-box .chat-msg {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  max-width: 100%;
+}
+.chat-user {
+  font-weight: bold;
+  color: var(--cyan);
+  margin-right: 8px;
+}
+.chat-text {
+  color: var(--text-primary);
+}
+.chat-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+.chat-input-row input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+}
+.chat-input-row input:focus { outline: none; border-color: var(--gold); }
+.chat-input-row button {
+  padding: 8px 20px;
+  background: var(--gold);
+  border: none;
+  border-radius: var(--radius);
+  color: #0d1117;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: var(--font-main);
+}
+
+/* 故事墙 */
+.story-card {
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+.story-header {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.story-header strong { color: var(--cyan); }
+.story-time { color: var(--text-muted); font-size: 0.75rem; margin-left: auto; }
+.story-content {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.story-footer { color: var(--red); font-size: 0.8rem; margin-top: 8px; }
+
+/* 招募板 */
+.recruit-card {
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+.recruit-header {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.recruit-header strong { color: var(--orange); }
+.recruit-status { font-size: 0.8rem; margin-left: auto; }
+.recruit-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.recruit-roles {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 世界选择 */
+.world-select {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.world-select-header {
+  padding: 12px 24px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.world-select-header h2 { color: var(--gold); font-size: 1.2rem; }
+
+.world-select-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.hot-world {
+  margin-bottom: 24px;
+}
+.hot-world h3 { color: var(--red); margin-bottom: 8px; }
+.hot-world-card {
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(139,0,0,0.2), rgba(212,167,116,0.1));
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.hot-world-name { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+.hot-world-state { font-size: 0.9rem; color: var(--text-secondary); margin: 4px 0; }
+.hot-world-count { font-size: 0.9rem; color: var(--green); }
+
+.world-list h3 {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+.world-card {
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.world-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.world-type {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.world-card-info {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   通用
+   ======================================== */
+.empty-text {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+  padding: 20px 0;
+}
+
+.error-msg {
+  padding: 12px 16px;
+  background: rgba(229,83,75,0.15);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  color: var(--red);
+  margin-bottom: 16px;
+}
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .game-body { flex-direction: column; }
+  .side-panel { width: 100%; min-width: auto; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .right-panel { width: 100%; min-width: auto; }
+  .race-grid, .class-grid, .talent-grid { grid-template-columns: 1fr; }
+}
