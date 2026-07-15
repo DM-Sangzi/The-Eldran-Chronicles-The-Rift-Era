@@ -17,12 +17,14 @@ class DiceSystem {
       finalModifier += (config.WORLD_STATES.golden_age.effects.diceBonus || 0);
     }
 
-    // 天赋修正
-    if (character.talent) {
-      const talent = this.findTalent(character.talent);
-      if (talent) {
-        if (talent.effects.diceBonus) finalModifier += talent.effects.diceBonus;
-        if (talent.effects.dicePenalty) finalModifier -= talent.effects.dicePenalty;
+    // 双天赋修正
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = this.findTalent(talentId);
+        if (talent) {
+          if (talent.effects.diceBonus) finalModifier += talent.effects.diceBonus;
+          if (talent.effects.dicePenalty) finalModifier -= talent.effects.dicePenalty;
+        }
       }
     }
 
@@ -82,11 +84,14 @@ class DiceSystem {
     return total;
   }
 
-  // 命运编织者 - 重新投掷
+  // 命运编织者 - 重新投掷（检查双天赋）
   static canReroll(character) {
-    if (!character.talent) return false;
-    const talent = this.findTalent(character.talent);
-    return talent && talent.effects.reroll && talent.effects.reroll > 0;
+    if (!character.talents || character.talents.length === 0) return false;
+    for (const talentId of character.talents) {
+      const talent = this.findTalent(talentId);
+      if (talent && talent.effects.reroll && talent.effects.reroll > 0) return true;
+    }
+    return false;
   }
 
   // 查找天赋
@@ -103,11 +108,13 @@ class DiceSystem {
     let adjustedChance = positiveChance;
 
     if (character.worldState === 'golden_age') adjustedChance += 15;
-    if (character.worldState === 'rift_age') adjustedChance -= 15;
+    if (character.worldState === 'decline_age') adjustedChance -= 15;
     if (character.luckyBlessing) adjustedChance += 30;
-    if (character.talent) {
-      const talent = this.findTalent(character.talent);
-      if (talent && talent.effects.negEventReduc) adjustedChance += talent.effects.negEventReduc;
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = this.findTalent(talentId);
+        if (talent && talent.effects.negEventReduc) adjustedChance += talent.effects.negEventReduc;
+      }
     }
 
     return Math.random() * 100 < Math.max(5, Math.min(95, adjustedChance));

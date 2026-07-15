@@ -32,14 +32,14 @@ export default function WorldSelect({ config, onBack }) {
     <div className="world-select">
       <header className="world-select-header">
         <button className="btn-back" onClick={onBack}>← 返回</button>
-        <h2>🌍 选择世界</h2>
+        <h2>🌍 查看世界</h2>
       </header>
 
       <div className="world-select-content">
         <div className="filter-bar">
           <button className={`btn-tag ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>全部</button>
           <button className={`btn-tag ${filter === 'golden_age' ? 'active' : ''}`} onClick={() => setFilter('golden_age')}>☀️ 光辉时代</button>
-          <button className={`btn-tag ${filter === 'rift_age' ? 'active' : ''}`} onClick={() => setFilter('rift_age')}>🌑 裂隙时代</button>
+          <button className={`btn-tag ${filter === 'decline_age' ? 'active' : ''}`} onClick={() => setFilter('decline_age')}>🌑 没落时代</button>
         </div>
 
         {hotWorld && (

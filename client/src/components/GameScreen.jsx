@@ -4,7 +4,7 @@ import CombatPanel from './CombatPanel.jsx';
 import MapPanel from './MapPanel.jsx';
 import InventoryPanel from './InventoryPanel.jsx';
 
-export default function GameScreen({ character: initialChar, token, world, config, onRefresh, onOpenSocial, onBackToTitle }) {
+export default function GameScreen({ character: initialChar, token, world, config, onRefresh, onOpenSocial, onBackToTitle, initialNarrative, initialTimeInfo, initialQuest }) {
   const [char, setChar] = useState(initialChar);
   const [narrative, setNarrative] = useState('');
   const [input, setInput] = useState('');
@@ -13,6 +13,10 @@ export default function GameScreen({ character: initialChar, token, world, confi
   const [combatData, setCombatData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [timeInfo, setTimeInfo] = useState(initialTimeInfo || null);
+  const [questProgress, setQuestProgress] = useState(
+    initialQuest?.type === 'multi_stage' ? initialQuest : null
+  );
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -22,7 +26,11 @@ export default function GameScreen({ character: initialChar, token, world, confi
   }, []);
 
   useEffect(() => {
-    loadScene();
+    if (initialNarrative) {
+      setNarrative(initialNarrative);
+    } else {
+      loadScene();
+    }
   }, []);
 
   useEffect(() => {
@@ -44,6 +52,10 @@ export default function GameScreen({ character: initialChar, token, world, confi
       const result = await api.getScene(token);
       setChar(result.character);
       setNarrative(result.narrative);
+      if (result.timeInfo) setTimeInfo(result.timeInfo);
+      if (result.character?.activeQuest?.type === 'multi_stage') {
+        setQuestProgress(result.character.activeQuest);
+      }
     } catch (err) {
       showNotification('加载场景失败: ' + err.message);
     }
@@ -61,6 +73,13 @@ export default function GameScreen({ character: initialChar, token, world, confi
     try {
       const result = await api.doAction(token, actionText);
       setChar(result.character);
+      if (result.timeInfo) setTimeInfo(result.timeInfo);
+      if (result.questCompleted) setQuestProgress(null);
+      if (result.character?.activeQuest && result.character.activeQuest.type === 'multi_stage') {
+        setQuestProgress(result.character.activeQuest);
+      } else if (!result.character?.activeQuest) {
+        setQuestProgress(null);
+      }
 
       let sysContent = result.narrative;
       if (result.combat && result.combat.status === 'active') {
@@ -82,6 +101,13 @@ export default function GameScreen({ character: initialChar, token, world, confi
     try {
       const result = await api.moveTo(token, regionId);
       setChar(result.character);
+      if (result.timeInfo) setTimeInfo(result.timeInfo);
+      if (result.questCompleted) setQuestProgress(null);
+      if (result.character?.activeQuest && result.character.activeQuest.type === 'multi_stage') {
+        setQuestProgress(result.character.activeQuest);
+      } else if (!result.character?.activeQuest) {
+        setQuestProgress(null);
+      }
       setNarrative(result.narrative);
       const sysMsg = { role: 'system', content: result.narrative, time: new Date().toLocaleTimeString() };
       setHistory(prev => [...prev, sysMsg]);
@@ -168,13 +194,49 @@ export default function GameScreen({ character: initialChar, token, world, confi
   const className = config?.classes?.[char.class]?.name || char.class;
   const raceName = config?.races?.[char.race]?.name || char.race;
   const worldStateName = config?.worldStates?.[char.worldState]?.name || char.worldState;
-  const isForsaken = char.talent === 'forsaken';
+  const isForsaken = char.talents?.includes('forsaken');
+  const isGoldenAge = char.worldState === 'golden_age';
+  const isDeclineAge = char.worldState === 'decline_age';
+
+  // 声望等级名称
+  const getReputationName = (value) => {
+    if (!config?.reputationTiers) return '未知';
+    for (const t of config.reputationTiers) {
+      if (value >= t.value) return t.name;
+    }
+    return config.reputationTiers[config.reputationTiers.length - 1]?.name || '未知';
+  };
+  const reputationName = getReputationName(char.reputation || 0);
+
+  // 阵营信息
+  const factionData = config?.factions?.[char.faction];
+  const factionEmoji = factionData ? factionData.emoji || '' : '';
+  const factionName = factionData?.name || '';
+
+  // 阵营外交声望
+  const factionRepEntries = char.factionRep
+    ? Object.entries(char.factionRep).filter(([fid]) => fid !== char.faction)
+    : [];
+
+  // 出生地信息
+  const birthInfo = char.birthLocation;
+
+  // 武器精通
+  const weaponProf = char.weaponProficiency || config?.weaponProficiency?.[char.class];
+
+  // 天生被动技能
+  const innateSkills = char.innateSkills;
+  const [showInnateDetails, setShowInnateDetails] = useState(false);
 
   const quickActions = [
     { label: '⚔️ 攻击', action: '攻击眼前的敌人', desc: '发起战斗' },
     { label: '🔍 探索', action: '仔细搜索周围的环境', desc: '搜索区域' },
     { label: '🗣️ 交谈', action: '与附近的人交谈', desc: '社交互动' },
+    { label: '⏰ 等待', action: '/wait', desc: '等待时间流逝' },
     { label: '🎲 掷骰', action: '/roll', desc: 'D20判定' },
+    { label: '🎒 背包', action: '/bag', desc: '查看物品栏' },
+    { label: '📋 任务', action: '/quest', desc: '查看任务' },
+    { label: '📚 技能', action: '/skills', desc: '查看技能树' },
   ];
 
   return (
@@ -192,12 +254,15 @@ export default function GameScreen({ character: initialChar, token, world, confi
         <div className="header-info">
           <span>{raceName} {className}</span>
           {isForsaken && <span className="forsaken-badge">💀 神弃者</span>}
+          {factionData && <span className="faction-badge-header" title={factionData.desc}>{factionEmoji} {factionName}</span>}
           <span>Lv.{char.level}</span>
           <span>⭐ {char.exp}</span>
           <span>💰 {char.gold}G</span>
         </div>
         <div className="header-right">
-          <span className="world-badge">🌍 {world?.name || worldStateName}</span>
+          <span className={`world-badge ${isGoldenAge ? 'golden-badge' : 'decline-badge'}`}>
+            {isGoldenAge ? '📖' : '⚔️'} {world?.name || worldStateName}
+          </span>
           <button className="btn-icon" onClick={onOpenSocial}>👥</button>
         </div>
       </header>
@@ -212,6 +277,126 @@ export default function GameScreen({ character: initialChar, token, world, confi
             </div>
             <h3>{char.name}</h3>
             <p className="char-title">{raceName} · {className} · Lv.{char.level}</p>
+
+            {birthInfo && (
+              <div className="birth-info">
+                <span className="birth-icon">🏙️</span>
+                <span className="birth-text">{birthInfo.capital} · {birthInfo.place}</span>
+              </div>
+            )}
+
+            {factionData && (
+              <div className="faction-info-sidebar" style={{ borderLeftColor: factionData.color }}>
+                <span className="faction-sidebar-emoji">{factionEmoji}</span>
+                <span className="faction-sidebar-name">{factionName}</span>
+              </div>
+            )}
+
+            {weaponProf && (
+              <div className="weapon-proficiency-sidebar">
+                <span className="weapon-prof-icon">{weaponProf.icon}</span>
+                <span className="weapon-prof-type">{weaponProf.type}</span>
+              </div>
+            )}
+
+            {/* 天赋展示 */}
+            {char.talents && char.talents.length > 0 && (
+              <div className="talents-display">
+                <div className="talents-label">⭐ 角色天赋</div>
+                <div className="talents-list">
+                  {char.talents.map((tid, i) => {
+                    let name = tid;
+                    for (const cat of Object.keys(config?.talentCategories || {})) {
+                      const found = config.talentCategories[cat]?.find(t => t.id === tid);
+                      if (found) { name = found.name; break; }
+                    }
+                    return <span key={i} className="talent-badge">{tid === 'forsaken' ? '💀' : '⭐'} {name}</span>;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 种族天赋展示 */}
+            {char.racialTrait && (
+              <div className="racial-trait-sidebar">
+                <div className="racial-trait-label">{char.racialTrait.icon} 种族天赋：{char.racialTrait.name}</div>
+                <div className="racial-trait-sidebar-desc">{char.racialTrait.desc}</div>
+              </div>
+            )}
+
+            {/* 主动技能 */}
+            {char.skills && char.skills.filter(s => s.skillLevel > 0).length > 0 && (
+              <div className="active-skills-sidebar">
+                <div className="active-skills-title">⚡ 已学技能</div>
+                {char.skills.filter(s => s.skillLevel > 0).map(skill => (
+                  <div key={skill.id} className="active-skill-item">
+                    <span className="active-skill-name">{skill.name} Lv.{skill.skillLevel}</span>
+                    <span className="active-skill-type">[{skill.type}]</span>
+                  </div>
+                ))}
+                <div className="active-skills-hint">输入 /skills 查看完整技能树 | /learn 技能ID 学习技能</div>
+              </div>
+            )}
+
+            {innateSkills && (
+              <div className="innate-skills-sidebar">
+                <div className="innate-header" onClick={() => setShowInnateDetails(!showInnateDetails)}>
+                  <span>⭐ 天生被动</span>
+                  <span className="innate-toggle">{showInnateDetails ? '▲' : '▼'}</span>
+                </div>
+                {showInnateDetails && (
+                  <div className="innate-details">
+                    {Object.entries(innateSkills).map(([key, skill]) => (
+                      <div key={key} className="innate-skill-card">
+                        <div className="innate-skill-header">
+                          <span className="innate-skill-icon">{skill.icon}</span>
+                          <div className="innate-skill-info">
+                            <span className="innate-skill-name">{skill.name}</span>
+                            <span className="innate-skill-tier">{skill.currentTier.name} · Lv.{skill.currentTier.level}</span>
+                          </div>
+                        </div>
+                        <p className="innate-skill-effect">{skill.currentTier.desc}</p>
+                        {skill.nextTier && (
+                          <div className="innate-next-tier">
+                            <div className="innate-next-bar">
+                              <div className="innate-next-fill" style={{
+                                width: `${Math.min(100, ((char.level - skill.currentTier.level) / (skill.nextTier.level - skill.currentTier.level)) * 100)}%`
+                              }} />
+                            </div>
+                            <span className="innate-next-label">→ Lv.{skill.nextTier.level} {skill.nextTier.name}</span>
+                          </div>
+                        )}
+                        {skill.isMaxed && (
+                          <div className="innate-maxed">🌟 已达终极形态</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="reputation-display">
+              <span className="rep-label">⭐ 本阵营声望</span>
+              <span className="rep-value">{reputationName}</span>
+            </div>
+
+            {factionRepEntries.length > 0 && (
+              <div className="faction-rep-list">
+                <div className="faction-rep-title">🌐 阵营外交</div>
+                {factionRepEntries.map(([fid, val]) => {
+                  const fData = config?.factions?.[fid];
+                  const repTier = getReputationName(val);
+                  return (
+                    <div key={fid} className="faction-rep-row">
+                      <span className="faction-rep-emoji">{fData?.emoji || '❓'}</span>
+                      <span className="faction-rep-name">{fData?.name || fid}</span>
+                      <span className="faction-rep-tier">{repTier}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="stat-bar hp-bar">
               <div className="stat-label">❤️ HP</div>
@@ -232,8 +417,9 @@ export default function GameScreen({ character: initialChar, token, world, confi
             <div className="stat-bar exp-bar">
               <div className="stat-label">⭐ EXP</div>
               <div className="bar-track">
-                <div className="bar-fill exp" style={{ width: `${Math.min(100, (char.exp / (char.level * 100)) * 100)}%` }} />
+                <div className="bar-fill exp" style={{ width: `${char.expProgress?.progress || 0}%` }} />
               </div>
+              <div className="stat-value">{char.exp}/{char.expProgress?.needed || '?'}</div>
             </div>
 
             <div className="attr-grid">
@@ -268,6 +454,38 @@ export default function GameScreen({ character: initialChar, token, world, confi
           <div className="location-info">
             📍 当前：<strong>{currentRegion?.name || '未知'}</strong>
           </div>
+
+          {/* 时间显示 */}
+          {timeInfo && (
+            <div className={`time-display ${timeInfo.isNight ? 'time-night' : 'time-day'}`}>
+              <span className="time-icon">{timeInfo.isNight ? '🌙' : '☀️'}</span>
+              <span className="time-text">{timeInfo.periodName}</span>
+              <span className="time-full">{timeInfo.full}</span>
+            </div>
+          )}
+
+          {/* 多阶段任务进度 */}
+          {questProgress && questProgress.type === 'multi_stage' && questProgress.status === 'active' && (
+            <div className="quest-progress-sidebar">
+              <div className="quest-progress-title">📋 {questProgress.title}</div>
+              <div className="quest-progress-stage">
+                阶段 {questProgress.currentStage}/{questProgress.stages.length}
+              </div>
+              <div className="quest-progress-goal">
+                🎯 {questProgress.stages[questProgress.currentStage - 1]?.goal || '推进任务'}
+              </div>
+              {questProgress.stages[questProgress.currentStage - 1]?.needTime && (
+                <div className="quest-progress-time-hint">
+                  ⚠️ 需要：{questProgress.stages[questProgress.currentStage - 1].needTime === 'night' ? '🌙 夜晚' : '☀️ 白天'}
+                </div>
+              )}
+              {questProgress.stages[questProgress.currentStage - 1]?.needLocation && (
+                <div className="quest-progress-loc-hint">
+                  📍 需要前往：{questProgress.stages[questProgress.currentStage - 1].needLocation}
+                </div>
+              )}
+            </div>
+          )}
         </aside>
 
         {/* 中间叙事面板 */}
@@ -335,7 +553,7 @@ export default function GameScreen({ character: initialChar, token, world, confi
               <MapPanel config={config} character={char} onMove={handleMove} />
             )}
             {activePanel === 'inventory' && (
-              <InventoryPanel character={char} />
+              <InventoryPanel character={char} config={config} token={token} onUpdate={setChar} />
             )}
           </aside>
         )}

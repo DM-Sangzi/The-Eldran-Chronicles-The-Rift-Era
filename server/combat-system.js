@@ -30,10 +30,14 @@ class CombatSystem {
     const { character, enemy } = combat;
     const log = [];
 
-    // 计算攻击力
-    let atk = character.attributes.str + (character.computed?.atkBonus || 0);
-    const weapon = character.equipment?.weapon;
-    if (weapon) atk += (weapon.atk || 0) + (weapon.magicAtk || 0);
+    // 计算攻击力（装备基础攻击 + 传说/神话武器百分比加成）
+    let atk = character.attributes.str;
+    const eqStats = character.computed?.equipmentStats || {};
+    atk += (eqStats.atk || 0);
+    // 传说/神话武器的伤害百分比加成
+    if (eqStats.damagePercent > 0) {
+      atk = Math.floor(atk * (1 + eqStats.damagePercent / 100));
+    }
 
     // 命中判定
     const hitCheck = DiceSystem.attackRoll(character, enemy.def);
@@ -56,12 +60,14 @@ class CombatSystem {
     let damage = DiceSystem.damageRoll(atk);
     damage = Math.max(1, damage - enemy.def);
 
-    // 天赋加成
-    if (character.talent) {
-      const talent = DiceSystem.findTalent(character.talent);
-      if (talent) {
-        if (talent.effects.meleeDmg) damage = Math.floor(damage * (1 + talent.effects.meleeDmg / 100));
-        if (talent.effects.riftDmg && enemy.name?.includes('裂隙')) damage = Math.floor(damage * (1 + talent.effects.riftDmg / 100));
+    // 双天赋加成
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = DiceSystem.findTalent(talentId);
+        if (talent) {
+          if (talent.effects.meleeDmg) damage = Math.floor(damage * (1 + talent.effects.meleeDmg / 100));
+          if (talent.effects.riftDmg && enemy.name?.includes('裂隙')) damage = Math.floor(damage * (1 + talent.effects.riftDmg / 100));
+        }
       }
     }
 
@@ -72,13 +78,15 @@ class CombatSystem {
       log.push(`⚔️ 造成 ${damage} 点伤害！`);
     }
 
-    // 吸血效果
-    if (character.talent) {
-      const talent = DiceSystem.findTalent(character.talent);
-      if (talent && talent.effects.lifesteal) {
-        const heal = Math.floor(damage * talent.effects.lifesteal / 100);
-        character.currentHp = Math.min(character.maxHp, character.currentHp + heal);
-        log.push(`🩸 战斗狂热：回复 ${heal} 点生命值`);
+    // 双天赋吸血效果
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = DiceSystem.findTalent(talentId);
+        if (talent && talent.effects.lifesteal) {
+          const heal = Math.floor(damage * talent.effects.lifesteal / 100);
+          character.currentHp = Math.min(character.maxHp, character.currentHp + heal);
+          log.push(`🩸 战斗狂热：回复 ${heal} 点生命值`);
+        }
       }
     }
 
@@ -89,7 +97,9 @@ class CombatSystem {
       enemy.currentHp = 0;
       log.push(`🏆 你击败了 ${enemy.name}！`);
       const rewards = this.calculateRewards(character, enemy);
-      log.push(`💰 获得 ${rewards.gold} 金币 | ⭐ ${rewards.exp} 经验`);
+      let rewardText = `💰 获得 ${rewards.gold} 金币 | ⭐ ${rewards.exp} 经验`;
+      if (enemy._expPenaltyNote) rewardText += ` ${enemy._expPenaltyNote}`;
+      log.push(rewardText);
       combat.status = 'victory';
       combat.rewards = rewards;
     } else {
@@ -105,11 +115,11 @@ class CombatSystem {
     const { character, enemy } = combat;
     const log = [];
 
-    // 敌人命中判定
+    // 敌人命中判定（使用装备总防御）
     const enemyRoll = DiceSystem.roll(20);
-    const playerDef = character.attributes.agi + (character.computed?.defBonus || 0);
-    const armor = character.equipment?.armor;
-    const totalDef = playerDef + (armor?.def || 0);
+    const eqStats = character.computed?.equipmentStats || {};
+    const playerDef = character.attributes.agi + (eqStats.def || 0);
+    const totalDef = playerDef;
 
     const difficulty = 5 + Math.floor(totalDef / 3);
     const hit = enemyRoll >= difficulty;
@@ -124,16 +134,18 @@ class CombatSystem {
       return { result: 'miss', log, combat };
     }
 
-    // 伤害计算
+    // 伤害计算（使用装备总防御减伤）
     let damage = Math.max(1, enemy.atk + DiceSystem.roll(6) - Math.floor(totalDef / 3));
 
-    // 天赋减伤
-    if (character.talent) {
-      const talent = DiceSystem.findTalent(character.talent);
-      if (talent) {
-        if (talent.effects.physDmgReduc) damage = Math.floor(damage * (1 - talent.effects.physDmgReduc / 100));
-        if (talent.effects.lowHpReduc && character.currentHp < character.maxHp * 0.3) {
-          damage = Math.floor(damage * (1 - talent.effects.lowHpReduc / 100));
+    // 双天赋减伤
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = DiceSystem.findTalent(talentId);
+        if (talent) {
+          if (talent.effects.physDmgReduc) damage = Math.floor(damage * (1 - talent.effects.physDmgReduc / 100));
+          if (talent.effects.lowHpReduc && character.currentHp < character.maxHp * 0.3) {
+            damage = Math.floor(damage * (1 - talent.effects.lowHpReduc / 100));
+          }
         }
       }
     }
@@ -152,31 +164,35 @@ class CombatSystem {
     character.currentHp -= damage;
     log.push(`💢 ${enemy.name} 对你造成了 ${damage} 点伤害！`);
 
-    // 诅咒之体反弹
-    if (character.talent) {
-      const talent = DiceSystem.findTalent(character.talent);
-      if (talent && talent.effects.curseReflect) {
-        const reflect = Math.floor(damage * talent.effects.curseReflect / 100);
-        const extraToSelf = Math.floor(damage * talent.effects.cursePenalty / 100);
-        enemy.currentHp -= reflect;
-        character.currentHp -= extraToSelf;
-        log.push(`🔄 诅咒之体：反弹 ${reflect} 伤害，自身额外承受 ${extraToSelf} 伤害`);
+    // 双天赋诅咒之体反弹
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = DiceSystem.findTalent(talentId);
+        if (talent && talent.effects.curseReflect) {
+          const reflect = Math.floor(damage * talent.effects.curseReflect / 100);
+          const extraToSelf = Math.floor(damage * talent.effects.cursePenalty / 100);
+          enemy.currentHp -= reflect;
+          character.currentHp -= extraToSelf;
+          log.push(`🔄 诅咒之体：反弹 ${reflect} 伤害，自身额外承受 ${extraToSelf} 伤害`);
+        }
       }
     }
 
     // 检查玩家死亡
     if (character.currentHp <= 0) {
-      // 神恩庇护 - 复活判定
-      if (character.talent) {
-        const talent = DiceSystem.findTalent(character.talent);
-        if (talent && talent.effects.reviveChance) {
-          if (Math.random() * 100 < talent.effects.reviveChance) {
-            character.currentHp = 1;
-            log.push('✨ 神恩庇护！你在死亡的边缘被拉了回来！（HP = 1）');
-            combat.turn = 'player';
-            combat.round++;
-            combat.log.push(...log);
-            return { result: 'revived', log, combat };
+      // 神恩庇护 - 复活判定（双天赋）
+      if (character.talents && character.talents.length > 0) {
+        for (const talentId of character.talents) {
+          const talent = DiceSystem.findTalent(talentId);
+          if (talent && talent.effects.reviveChance) {
+            if (Math.random() * 100 < talent.effects.reviveChance) {
+              character.currentHp = 1;
+              log.push('✨ 神恩庇护！你在死亡的边缘被拉了回来！（HP = 1）');
+              combat.turn = 'player';
+              combat.round++;
+              combat.log.push(...log);
+              return { result: 'revived', log, combat };
+            }
           }
         }
       }
@@ -247,7 +263,7 @@ class CombatSystem {
     }
 
     // 神弃者不能使用神术
-    if (skill.holy && character.talent === 'forsaken') {
+    if (skill.holy && character.talents?.includes('forsaken')) {
       log.push('💀 作为神弃者，你无法使用神圣技能。圣光在你手中消散了。');
       combat.turn = 'enemy';
       combat.log.push(...log);
@@ -273,7 +289,9 @@ class CombatSystem {
         combat.status = 'victory';
         log.push(`🏆 你击败了 ${enemy.name}！`);
         const rewards = this.calculateRewards(character, enemy);
-        log.push(`💰 获得 ${rewards.gold} 金币 | ⭐ ${rewards.exp} 经验`);
+        let rewardText = `💰 获得 ${rewards.gold} 金币 | ⭐ ${rewards.exp} 经验`;
+        if (enemy._expPenaltyNote) rewardText += ` ${enemy._expPenaltyNote}`;
+        log.push(rewardText);
         combat.rewards = rewards;
       }
     }
@@ -329,21 +347,58 @@ class CombatSystem {
     return { result: 'item_used', log, combat };
   }
 
+  // 获取敌人等效等级（用于等级差经验衰减计算）
+  static getEnemyEffectiveLevel(enemy) {
+    // 根据 tier 估算敌人的等效等级
+    const tierLevelMap = { 1: 3, 2: 6, 3: 9, 4: 12, 5: 15 };
+    return tierLevelMap[enemy.tier] || 5;
+  }
+
+  // 计算等级差经验衰减系数
+  // 高出一级减少20%，每多高一级多减20%，不低于0%
+  static getExpScalingFactor(charLevel, enemyLevel) {
+    const diff = charLevel - enemyLevel;
+    if (diff <= 0) return 1.0; // 等级≤怪物 → 100%
+    const reduction = diff * 20; // 每级-20%
+    if (reduction >= 100) return 0.0;
+    return (100 - reduction) / 100;
+  }
+
   // 计算奖励
   static calculateRewards(character, enemy) {
     let gold = enemy.gold;
     let exp = enemy.exp;
 
-    // 世界状态奖励
-    if (character.worldState === 'rift_age') {
-      gold = Math.floor(gold * (1 + (config.WORLD_STATES.rift_age.effects.rewardBonus || 0) / 100));
+    // 等级差经验衰减：高等级打低级怪经验减少
+    const enemyEffLevel = this.getEnemyEffectiveLevel(enemy);
+    const scalingFactor = this.getExpScalingFactor(character.level, enemyEffLevel);
+    if (scalingFactor < 1.0) {
+      const originalExp = exp;
+      exp = Math.floor(exp * scalingFactor);
+      // 日志记录衰减（在调用方可追加到 combat log）
+      if (scalingFactor <= 0) {
+        enemy._expPenaltyNote = `（等级差过大，无经验获得）`;
+      } else if (scalingFactor < 0.5) {
+        enemy._expPenaltyNote = `（等级压制 -${Math.round((1 - scalingFactor) * 100)}% 经验）`;
+      } else if (scalingFactor < 1.0) {
+        enemy._expPenaltyNote = `（等级差 -${Math.round((1 - scalingFactor) * 100)}% 经验）`;
+      }
+    } else {
+      enemy._expPenaltyNote = '';
     }
 
-    // 天赋加成
-    if (character.talent) {
-      const talent = DiceSystem.findTalent(character.talent);
-      if (talent && talent.effects.expBonus) {
-        exp = Math.floor(exp * (1 + talent.effects.expBonus / 100));
+    // 世界状态奖励
+    if (character.worldState === 'decline_age') {
+      gold = Math.floor(gold * (1 + (config.WORLD_STATES.decline_age.effects.rewardBonus || 0) / 100));
+    }
+
+    // 双天赋经验加成
+    if (character.talents && character.talents.length > 0) {
+      for (const talentId of character.talents) {
+        const talent = DiceSystem.findTalent(talentId);
+        if (talent && talent.effects.expBonus) {
+          exp = Math.floor(exp * (1 + talent.effects.expBonus / 100));
+        }
       }
     }
 

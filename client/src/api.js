@@ -21,6 +21,8 @@ export const api = {
   createCharacter: (data) => request('/character/create', { method: 'POST', body: JSON.stringify(data) }),
   getCharacter: (token) => request(`/character?token=${token}`),
   allocatePoints: (token, points) => request('/character/allocate', { method: 'POST', body: JSON.stringify({ token, ...points }) }),
+  equipItem: (token, itemId) => request('/character/equip', { method: 'POST', body: JSON.stringify({ token, itemId }) }),
+  unequipItem: (token, itemId) => request('/character/unequip', { method: 'POST', body: JSON.stringify({ token, itemId }) }),
 
   // 游戏
   getScene: (token) => request(`/game/scene?token=${token}`),

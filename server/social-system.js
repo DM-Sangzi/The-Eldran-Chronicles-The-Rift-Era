@@ -1,5 +1,6 @@
 // 社交系统 - 好友、聊天、广场
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
+const uuidv4 = () => crypto.randomUUID();
 
 class SocialSystem {
   constructor() {

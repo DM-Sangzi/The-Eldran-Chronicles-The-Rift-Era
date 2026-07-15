@@ -12,7 +12,7 @@ class WorldSystem {
   initDefaultWorlds() {
     // 光辉时代世界
     this.createWorld('golden_age', '光辉时代-主世界', 'public');
-    this.createWorld('rift_age', '裂隙时代-主世界', 'public');
+    this.createWorld('decline_age', '没落时代-主世界', 'public');
   }
 
   // 创建世界
